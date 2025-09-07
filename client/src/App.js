@@ -350,6 +350,64 @@ const Blob = styled.div`
 	filter: blur(60px);
 	opacity: 0.35;
 	z-index: -1;
+	will-change: transform;
+`;
+
+// Gentle float animation for background blobs (hero)
+const float = keyframes`
+	0%   { transform: translateY(0) translateX(0); }
+	50%  { transform: translateY(-14px) translateX(8px); }
+	100% { transform: translateY(10px) translateX(-8px); }
+`;
+
+const FloatyBlob = styled(Blob)`
+	animation: ${float} 12s ease-in-out infinite alternate;
+`;
+
+// Profile dropdown (auth header)
+const ProfileWrap = styled.div`
+	position: relative;
+`;
+const ProfileButton = styled.button`
+	display: inline-flex;
+	align-items: center;
+	gap: ${space(1)};
+	background: transparent;
+	border: 1px solid ${colors.brand2};
+	color: ${colors.brand1};
+	border-radius: 999px;
+	padding: 6px 10px 6px 6px;
+	cursor: pointer;
+`;
+const Caret = styled.span`
+	font-size: 0.8rem;
+	color: ${colors.muted};
+`;
+const Menu = styled.div`
+	position: absolute;
+	right: 0;
+	top: calc(100% + 8px);
+	background: #fff;
+	box-shadow: 0 10px 30px rgba(16,24,40,0.14);
+	border-radius: 12px;
+	padding: 6px;
+	min-width: 160px;
+	z-index: 1001;
+`;
+const MenuItem = styled.button`
+	width: 100%;
+	display: block;
+	text-align: left;
+	background: transparent;
+	border: 0;
+	padding: 10px 12px;
+	border-radius: 8px;
+	cursor: pointer;
+	color: ${colors.ink};
+	&:hover { background: #FAFAFA; }
+`;
+const Backdrop = styled.div`
+	position: fixed; inset: 0; background: transparent; z-index: 1000;
 `;
 
 function App() {
@@ -664,8 +722,8 @@ function App() {
 							</StatBar>
 						</div>
 						<div style={{ position: 'relative' }}>
-							<Blob style={{ left: -40, top: -10, background: '#FDE68A' }} />
-							<Blob style={{ right: -60, bottom: -20, background: '#FDBA74' }} />
+							<FloatyBlob style={{ left: -40, top: -10, background: '#FDE68A' }} />
+							<FloatyBlob style={{ right: -60, bottom: -20, background: '#FDBA74', animationDelay: '0.6s' }} />
 							<Card initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
 								<SectionTitle>Why SkillSwap?</SectionTitle>
 								<ul style={{ margin: 0, paddingLeft: space(3) }}>
@@ -704,9 +762,24 @@ function App() {
 					</Brand>
 					<Row>
 						<GhostButton aria-label="Toggle dark mode" onClick={() => setDark(d => !d)}>{dark ? '☀️ Light' : '🌙 Dark'}</GhostButton>
-						<GhostButton aria-label="Logout" onClick={logout}>Logout</GhostButton>
 						<GhostButton aria-label="Suggest a skill" onClick={getSuggestion}>Suggest a Skill</GhostButton>
 						{suggestion && <span style={{ color: colors.brandDark }}>Try: {suggestion}</span>}
+						<ProfileWrap>
+							<ProfileButton aria-label="Profile menu" onClick={() => setMenuOpen(o => !o)}>
+								<Avatar $bg={'#F59E0B'} aria-hidden>{user.username.slice(0,2).toUpperCase()}</Avatar>
+								<span>@{user.username}</span>
+								<Caret>▾</Caret>
+							</ProfileButton>
+							{menuOpen && (
+								<>
+									<Backdrop onClick={() => setMenuOpen(false)} />
+									<Menu role="menu" aria-label="Profile">
+										<MenuItem role="menuitem" onClick={() => { setMenuOpen(false); addToast('Profile coming soon'); }}>Profile</MenuItem>
+										<MenuItem role="menuitem" onClick={() => { setMenuOpen(false); logout(); }}>Logout</MenuItem>
+									</Menu>
+								</>
+							)}
+						</ProfileWrap>
 					</Row>
 				</HeaderBar>
 
