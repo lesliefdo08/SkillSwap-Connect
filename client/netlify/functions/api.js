@@ -216,4 +216,4 @@ if (process.env.SEED !== 'false') {
   seedDemo();
 }
 
-module.exports.handler = serverless(app);
+module.exports.handler = serverless(app, { basePath: '/.netlify/functions/api' });
