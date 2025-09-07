@@ -2,10 +2,11 @@
   base = "client"
   publish = "build"
   command = "npm run build"
+  functions = "netlify/functions"
 
 # Netlify Functions (kept inside client/netlify/functions)
 [functions]
-  directory = "client/netlify/functions"
+  directory = "netlify/functions"
 
 # SPA fallback so client-side routes work on refresh
 [[redirects]]
