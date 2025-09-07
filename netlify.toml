@@ -1,0 +1,10 @@
+[build]
+  base = "client"
+  publish = "build"
+  command = "npm run build"
+
+# SPA fallback so client-side routes work on refresh
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
