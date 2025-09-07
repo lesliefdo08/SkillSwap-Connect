@@ -9,6 +9,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Accept both "/api/*" and "/*" inside the function (defensive against varying base paths)
+app.use((req, _res, next) => {
+  if (req.url.startsWith('/api/')) {
+    req.url = req.url.replace(/^\/api\//, '/');
+  }
+  next();
+});
+
 // In-memory data stores
 const users = []; // { id, username, skillsOffered: [], skillsWanted: [] }
 const sessions = []; // { id, fromId, toId, skill, time, status }
