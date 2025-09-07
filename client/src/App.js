@@ -2,7 +2,14 @@ import React, { useState, useEffect } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
 
-const API = '/api';
+// API base:
+// - Dev: CRA proxy forwards '/api' to localhost:5000
+// - Netlify prod: prefer relative '/api' so requests hit the free Netlify Function
+// - Other prod hosts: allow overriding via REACT_APP_API_URL
+const isNetlifyHost = typeof window !== 'undefined' && /netlify\.(app|dev)$/.test(window.location.hostname);
+const API = isNetlifyHost
+	? '/api'
+	: (process.env.REACT_APP_API_URL ? `${process.env.REACT_APP_API_URL}/api` : '/api');
 
 // Design tokens
 const colors = {
