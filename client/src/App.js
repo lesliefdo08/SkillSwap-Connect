@@ -283,6 +283,75 @@ const Footer = styled.footer`
   font-size: 0.85rem;
 `;
 
+// Hero (login) layout
+const Hero = styled.div`
+	position: relative;
+	min-height: calc(100vh - ${space(10)});
+	display: grid;
+	grid-template-columns: 1.2fr 1fr;
+	gap: ${space(3)};
+	align-items: center;
+	@media (max-width: ${bp.md}) {
+		grid-template-columns: 1fr;
+		min-height: auto;
+	}
+`;
+const BigTitle = styled.h1`
+	margin: 0 0 ${space(1)};
+	font-size: 3rem;
+	line-height: 1.1;
+	background: linear-gradient(90deg, ${colors.brand1}, ${colors.brand2});
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	@media (max-width: ${bp.sm}) {
+		font-size: 2.2rem;
+	}
+`;
+const Tagline = styled.p`
+	margin-top: 0;
+	color: ${colors.muted};
+	font-size: 1.1rem;
+`;
+const HeroActions = styled.div`
+	display: flex;
+	align-items: center;
+	gap: ${space(1)};
+	flex-wrap: wrap;
+`;
+const StatBar = styled.div`
+	margin-top: ${space(3)};
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: ${space(2)};
+	@media (max-width: ${bp.sm}) {
+		grid-template-columns: 1fr;
+	}
+`;
+const StatBox = styled.div`
+	background: #fff;
+	border-radius: 14px;
+	padding: ${space(2)};
+	box-shadow: 0 10px 30px rgba(16,24,40,0.08);
+	display: flex;
+	flex-direction: column;
+	gap: ${space(0.5)};
+`;
+const BigNumber = styled.span`
+	font-size: 1.8rem;
+	font-weight: 800;
+	color: ${colors.brandDark};
+`;
+const Blob = styled.div`
+	position: absolute;
+	width: 420px;
+	height: 420px;
+	border-radius: 50%;
+	filter: blur(60px);
+	opacity: 0.35;
+	z-index: -1;
+`;
+
 function App() {
 	const [user, setUser] = useState(null);
 	const [username, setUsername] = useState('');
@@ -301,6 +370,7 @@ function App() {
 		const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
 		const [sessions, setSessions] = useState([]);
 		const [loadingSessions, setLoadingSessions] = useState(false);
+		const [stats, setStats] = useState({ users: 0, thanks: 0, badges: 0 });
 
 		const addToast = (text, tone = 'info') => {
 			const id = Math.random().toString(36).slice(2);
@@ -312,6 +382,16 @@ function App() {
 		const burstConfetti = () => {
 			setConfetti(true);
 			setTimeout(() => setConfetti(false), 800);
+		};
+
+		const logout = () => {
+			setUser(null);
+			setUsername('');
+			setSkillsOffered([]);
+			setSkillsWanted([]);
+			setMatches([]);
+			setSessions([]);
+			addToast('Logged out', 'info');
 		};
 
 		// Demo data seeding
@@ -474,7 +554,9 @@ function App() {
 				setLoadingLeaderboard(true);
 				const res = await fetch(`${API}/leaderboard`);
 				if (!res.ok) throw new Error('Failed to load leaderboard');
-				setLeaderboard(await res.json());
+				const data = await res.json();
+				setLeaderboard(data);
+				setStats(s => ({ ...s, badges: data.reduce((sum, r) => sum + (r.badges || 0), 0) }));
 			} catch (e) {
 				addToast('Could not load leaderboard', 'error');
 			} finally {
@@ -556,16 +638,46 @@ function App() {
 							<GhostButton aria-label="Toggle dark mode" onClick={() => setDark(d => !d)}>{dark ? '☀️ Light' : '🌙 Dark'}</GhostButton>
 						</Row>
 					</HeaderBar>
-					<Card initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-						<SectionTitle>Start your journey</SectionTitle>
-						<p style={{ marginTop: 0, color: colors.muted }}>Pick a username to jump in. No passwords needed for the demo.</p>
-						<Row>
-							<Input aria-label="Username" placeholder="Enter your username" value={username} onChange={e => setUsername(e.target.value)} />
-							<Button aria-label="Enter app" onClick={handleLogin}>Enter</Button>
-							<GhostButton aria-label="Load demo data" onClick={loadDemoData}>Load Demo Data</GhostButton>
-							<span style={{ color: colors.muted }}>Try: demo, alex, taylor, sam, jordan</span>
-						</Row>
-					</Card>
+
+					<Hero>
+						<div>
+							<BigTitle>Learn faster. Teach better. Together.</BigTitle>
+							<Tagline>Match with peers who want to learn what you teach — and teach what you want to learn.</Tagline>
+							<HeroActions>
+								<Input aria-label="Username" placeholder="Pick a username (e.g., demo)" value={username} onChange={e => setUsername(e.target.value)} />
+								<Button aria-label="Enter app" onClick={handleLogin}>Get Started</Button>
+								<GhostButton aria-label="Load demo data" onClick={loadDemoData}>Load Demo Data</GhostButton>
+							</HeroActions>
+							<StatBar>
+								<StatBox>
+									<span style={{ color: colors.muted }}>Community</span>
+									<BigNumber>{stats.users || 5}+</BigNumber>
+								</StatBox>
+								<StatBox>
+									<span style={{ color: colors.muted }}>Thank-yous</span>
+									<BigNumber>{thanksWall.length}</BigNumber>
+								</StatBox>
+								<StatBox>
+									<span style={{ color: colors.muted }}>Badges earned</span>
+									<BigNumber>{leaderboard.reduce((sum, r) => sum + (r.badges || 0), 0)}</BigNumber>
+								</StatBox>
+							</StatBar>
+						</div>
+						<div style={{ position: 'relative' }}>
+							<Blob style={{ left: -40, top: -10, background: '#FDE68A' }} />
+							<Blob style={{ right: -60, bottom: -20, background: '#FDBA74' }} />
+							<Card initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+								<SectionTitle>Why SkillSwap?</SectionTitle>
+								<ul style={{ margin: 0, paddingLeft: space(3) }}>
+									<li>Find perfect matches based on teach/learn goals</li>
+									<li>Propose and accept learning sessions</li>
+									<li>Share gratitude on the Wall of Thanks</li>
+									<li>Earn badges and climb the leaderboard</li>
+								</ul>
+							</Card>
+						</div>
+					</Hero>
+
 					<Footer>Major Project — Web Development Internship (VOC) | Leslie Fernando</Footer>
 				</Shell>
 				{/* Toasts */}
@@ -592,6 +704,7 @@ function App() {
 					</Brand>
 					<Row>
 						<GhostButton aria-label="Toggle dark mode" onClick={() => setDark(d => !d)}>{dark ? '☀️ Light' : '🌙 Dark'}</GhostButton>
+						<GhostButton aria-label="Logout" onClick={logout}>Logout</GhostButton>
 						<GhostButton aria-label="Suggest a skill" onClick={getSuggestion}>Suggest a Skill</GhostButton>
 						{suggestion && <span style={{ color: colors.brandDark }}>Try: {suggestion}</span>}
 					</Row>
