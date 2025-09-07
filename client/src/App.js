@@ -32,6 +32,9 @@ const bp = {
 const GlobalStyle = createGlobalStyle`
 	:root {
 		--radius: 16px;
+		--card-bg: ${p => p.dark ? '#0F172A' : '#FFFFFF'};
+		--muted: ${p => p.dark ? '#9CA3AF' : '#6B7280'};
+		--border: ${p => p.dark ? 'rgba(255,255,255,0.08)' : '#F4DFD0'};
 	}
 	body {
 		margin: 0;
@@ -49,6 +52,8 @@ const Shell = styled.div`
 	max-width: 1080px;
 	margin: ${space(5)} auto;
 	padding: 0 ${space(3)};
+	position: relative;
+	z-index: 1;
 	@media (max-width: ${bp.sm}) {
 		margin: ${space(2)} auto;
 		padding: 0 ${space(2)};
@@ -84,12 +89,12 @@ const Title = styled.h1`
 	}
 `;
 const SubTitle = styled.span`
-	color: ${colors.muted};
+	color: var(--muted);
 	font-size: 0.95rem;
 `;
 
 const Card = styled(motion.section)`
-	background: ${colors.card};
+	background: var(--card-bg);
 	border-radius: var(--radius);
 	box-shadow: 0 10px 30px rgba(16, 24, 40, 0.08);
 	padding: ${space(3)};
@@ -186,7 +191,7 @@ const List = styled.ul`
 
 const ListItem = styled.li`
 	padding: 10px 0;
-	border-bottom: 1px dashed #F4DFD0;
+	border-bottom: 1px dashed var(--border);
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -310,7 +315,7 @@ const BigTitle = styled.h1`
 `;
 const Tagline = styled.p`
 	margin-top: 0;
-	color: ${colors.muted};
+	color: var(--muted);
 	font-size: 1.1rem;
 `;
 const HeroActions = styled.div`
