@@ -49,7 +49,7 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const Shell = styled.div`
-	max-width: 1080px;
+	max-width: 1200px;
 	margin: ${space(5)} auto;
 	padding: 0 ${space(3)};
 	position: relative;
@@ -73,8 +73,9 @@ const HeaderBar = styled(motion.header)`
 `;
 const Brand = styled.div`
 	display: flex;
-	align-items: baseline;
-	gap: ${space(1)};
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
 `;
 const Title = styled.h1`
 	margin: 0;
@@ -140,6 +141,7 @@ const Input = styled.input`
 	border: 1px solid #F4C6A5;
 	outline: none;
 	min-width: 220px;
+	width: 320px;
 	@media (max-width: ${bp.sm}) {
 		min-width: 0;
 		width: 100%;
@@ -334,14 +336,14 @@ const Hero = styled.div`
 `;
 const BigTitle = styled.h1`
 	margin: 0 0 ${space(1)};
-	font-size: 3rem;
+	font-size: 3.6rem;
 	line-height: 1.1;
 	background: linear-gradient(90deg, ${colors.brand1}, ${colors.brand2});
 	-webkit-background-clip: text;
 	background-clip: text;
 	color: transparent;
 	@media (max-width: ${bp.sm}) {
-		font-size: 2.2rem;
+		font-size: 2.4rem;
 	}
 `;
 const Tagline = styled.p`
