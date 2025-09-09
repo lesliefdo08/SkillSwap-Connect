@@ -114,7 +114,7 @@ const Button = styled.button`
 	color: #fff;
 	border: 0;
 	border-radius: 10px;
-	padding: 10px 18px;
+	padding: 12px 18px;
 	font-size: 0.95rem;
 	cursor: pointer;
 	transition: transform .06s ease, box-shadow .2s ease;
@@ -172,6 +172,9 @@ const Row = styled.div`
 	align-items: center;
 	gap: ${space(1.5)};
 	flex-wrap: wrap;
+	@media (max-width: ${bp.sm}) {
+		gap: ${space(1)};
+	}
 `;
 
 const Grid = styled.div`
@@ -852,10 +855,10 @@ function App() {
 													<div style={{ color: colors.muted, fontSize: '0.9rem' }}>Wants: {m.skillsWanted.join(', ')}</div>
 												</div>
 											</div>
-											<div style={{ display: 'flex', gap: space(1) }}>
+											<ActionRow>
 												<Button aria-label={`Say thanks to ${m.username}`} onClick={() => sendThanks(m.username)}>Thanks</Button>
 												<GhostButton aria-label={`Propose session with ${m.username}`} onClick={() => proposeSession(m)}>Propose</GhostButton>
-											</div>
+											</ActionRow>
 										</ListItem>
 									);
 								})}
@@ -947,12 +950,12 @@ function App() {
 									<li key={l.username} style={{ marginBottom: space(1.5), display: 'flex', alignItems: 'center' }}>
 										<Avatar $bg={'#F59E0B'} aria-hidden>{l.username.slice(0,2).toUpperCase()}</Avatar>
 										<span style={{ marginLeft: space(1) }}><b>{l.username}</b> – Badges: {l.badges}</span>
-										{l.username !== user.username && (
-											<span style={{ marginLeft: space(1) }}>
-												<InputSmall aria-label={`Badge for ${l.username}`} placeholder="Badge name" value={badge} onChange={e => setBadge(e.target.value)} />
-												<Button aria-label={`Award badge to ${l.username}`} style={{ marginLeft: space(1) }} onClick={() => awardBadge(l.username)}>Award</Button>
-											</span>
-										)}
+											{l.username !== user.username && (
+												<ActionRow>
+													<InputSmall aria-label={`Badge for ${l.username}`} placeholder="Badge name" value={badge} onChange={e => setBadge(e.target.value)} />
+													<Button aria-label={`Award badge to ${l.username}`} onClick={() => awardBadge(l.username)}>Award</Button>
+												</ActionRow>
+											)}
 									</li>
 								))}
 							</ol>
