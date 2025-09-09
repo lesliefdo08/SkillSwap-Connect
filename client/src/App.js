@@ -807,7 +807,7 @@ function App() {
 				<Shell>
 					<HeaderBar initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
 						<Brand>
-							<Title>SkillSwap Connect</Title>
+							<img src="/logo-wordmark.svg" alt="SkillSwap Connect by Leslie Fernando" style={{ height: 36 }} />
 							<SubTitle>Teach what you know. Learn what you love.</SubTitle>
 						</Brand>
 						<Row>
@@ -930,7 +930,7 @@ function App() {
 			<Shell>
 				<HeaderBar initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
 					<Brand>
-						<Title>Welcome, {user.username}!</Title>
+						<img src="/logo-wordmark.svg" alt="SkillSwap Connect by Leslie Fernando" style={{ height: 32 }} />
 						<SubTitle>Share your skills and match with peers</SubTitle>
 					</Brand>
 					<Row>
