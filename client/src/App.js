@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
 
@@ -101,6 +101,7 @@ const Card = styled(motion.section)`
 	padding: ${space(3)};
 	width: 100%;
 	min-height: 120px;
+	${p => p.$highlight ? `box-shadow: 0 0 0 3px rgba(253, 186, 116, 0.75), 0 10px 30px rgba(16,24,40,0.08);` : ''}
 	@media (max-width: ${bp.sm}) {
 		padding: ${space(2)};
 	}
@@ -539,6 +540,8 @@ function App() {
 		const [stats, setStats] = useState({ users: 0, thanks: 0, badges: 0 });
 		const [menuOpen, setMenuOpen] = useState(false);
 		const [modal, setModal] = useState({ open: false, type: null, title: '', fields: {}, target: null, message: '' });
+		const profileRef = useRef(null);
+		const [highlightProfile, setHighlightProfile] = useState(false);
 
 		const addToast = (text, tone = 'info') => {
 			const id = Math.random().toString(36).slice(2);
@@ -925,7 +928,7 @@ function App() {
 								<>
 									<Backdrop onClick={() => setMenuOpen(false)} />
 									<Menu role="menu" aria-label="Profile">
-										<MenuItem role="menuitem" onClick={() => { setMenuOpen(false); addToast('Profile coming soon'); }}>Profile</MenuItem>
+										<MenuItem role="menuitem" onClick={() => { setMenuOpen(false); profileRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); setHighlightProfile(true); setTimeout(() => setHighlightProfile(false), 1200); }}>Profile</MenuItem>
 										<MenuItem role="menuitem" onClick={() => { setMenuOpen(false); logout(); }}>Logout</MenuItem>
 									</Menu>
 								</>
@@ -935,7 +938,7 @@ function App() {
 				</HeaderBar>
 
 				<Grid>
-					<Card initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+					<Card ref={profileRef} $highlight={highlightProfile} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
 						<SectionTitle>Your Profile</SectionTitle>
 						<div style={{ marginBottom: space(1) }}>
 							<b>Skills you can teach:</b>
@@ -1105,7 +1108,7 @@ function App() {
 																																	...(l.skillsOffered || []).map(s => `${s} Mentor`),
 																																	...(l.skillsWanted || []).map(s => `Learning ${s}`)
 																																];
-																																const unique = Array.from(new Set([...suggestions, ...skillBased])).slice(0, 5);
+																																const unique = Array.from(new Set([...suggestions, ...skillBased])).slice(0, 3);
 																																return unique;
 																															})().map(sug => (
 																						<GhostButton key={sug} onClick={() => { setBadge(sug); setTimeout(() => awardBadge(l.username), 0); }}>+ {sug}</GhostButton>
