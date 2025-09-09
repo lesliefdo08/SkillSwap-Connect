@@ -366,6 +366,19 @@ const SkeletonLine = styled.div`
 	animation: ${shimmer} 1.2s ease-in-out infinite;
 `;
 
+// Minimal skeleton list generator to reduce repetition
+function SkeletonList({ count = 4, widths = ['40%', '25%'] }) {
+	return (
+		<List>
+			{Array.from({ length: count }).map((_, i) => (
+				<ListItem key={i}>
+					{widths.map((w, j) => <SkeletonLine key={j} $w={w} />)}
+				</ListItem>
+			))}
+		</List>
+	);
+}
+
 const Footer = styled.footer`
   margin: ${space(3)} 0 ${space(1)};
   text-align: center;
@@ -739,6 +752,16 @@ function App() {
 			}
 	};
 
+	// Badge suggestions helper (deduped and limited)
+	const badgeSuggestions = (l) => {
+		const suggestions = ['Team Player','Problem Solver','Great Mentor'];
+		const skillBased = [
+			...toArray(l.skillsOffered).map(s => `${s} Mentor`),
+			...toArray(l.skillsWanted).map(s => `Learning ${s}`)
+		];
+		return Array.from(new Set([...suggestions, ...skillBased])).slice(0, 3);
+	};
+
 	useEffect(() => {
 		fetchThanks();
 		fetchLeaderboard();
@@ -1044,14 +1067,7 @@ function App() {
 					<Card initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
 						<SectionTitle>Sessions</SectionTitle>
 						{loadingSessions ? (
-							<List>
-								{Array.from({ length: 4 }).map((_, i) => (
-									<ListItem key={i}>
-										<SkeletonLine $w="40%" />
-										<SkeletonLine $w="25%" />
-									</ListItem>
-								))}
-							</List>
+							<SkeletonList count={4} widths={["40%","25%"]} />
 						) : sessions.length === 0 ? (
 							<p style={{ color: colors.muted, marginTop: 0 }}>No sessions yet. Propose one from the Matches section.</p>
 						) : (
@@ -1077,14 +1093,7 @@ function App() {
 						<SectionTitle>Wall of Thanks</SectionTitle>
 						<div>
 							{loadingThanks ? (
-								<List>
-									{Array.from({ length: 5 }).map((_, i) => (
-										<ListItem key={i}>
-											<SkeletonLine $w="30%" />
-											<SkeletonLine $w="50%" />
-										</ListItem>
-									))}
-								</List>
+								<SkeletonList count={5} widths={["30%","50%"]} />
 							) : thanksWall.length === 0 ? (
 								<p style={{ color: colors.muted, marginTop: 0 }}>No shoutouts yet. Spread some kindness!</p>
 							) : (
@@ -1109,14 +1118,7 @@ function App() {
 					<Card initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
 						<SectionTitle>Leaderboard</SectionTitle>
 						{loadingLeaderboard ? (
-							<List>
-								{Array.from({ length: 4 }).map((_, i) => (
-									<ListItem key={i}>
-										<SkeletonLine $w="40%" />
-										<SkeletonLine $w="20%" />
-									</ListItem>
-								))}
-							</List>
+							<SkeletonList count={4} widths={["40%","20%"]} />
 						) : leaderboard.length === 0 ? (
 							<p style={{ color: colors.muted, marginTop: 0 }}>No badges yet.</p>
 			) : (
@@ -1151,14 +1153,7 @@ function App() {
 																				<ActionRow style={{ marginTop: space(1) }}>
 																					<InputSmall aria-label={`Badge for ${l.username}`} placeholder="Badge name" value={badge} onChange={e => setBadge(e.target.value)} />
 																					<Button aria-label={`Award badge to ${l.username}`} onClick={() => awardBadge(l.username)}>Award</Button>
-																															{(() => {
-																																const skillBased = [
-																																	...toArray(l.skillsOffered).map(s => `${s} Mentor`),
-																																	...toArray(l.skillsWanted).map(s => `Learning ${s}`)
-																																];
-																																const unique = Array.from(new Set([...suggestions, ...skillBased])).slice(0, 3);
-																																return unique;
-																															})().map(sug => (
+																															{badgeSuggestions(l).map(sug => (
 																						<GhostButton key={sug} onClick={() => { setBadge(sug); setTimeout(() => awardBadge(l.username), 0); }}>+ {sug}</GhostButton>
 																					))}
 																				</ActionRow>
