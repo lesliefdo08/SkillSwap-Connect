@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ProfilePage from './ProfilePage';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
 
@@ -542,6 +543,13 @@ function App() {
 		const [modal, setModal] = useState({ open: false, type: null, title: '', fields: {}, target: null, message: '' });
 		const profileRef = useRef(null);
 		const [highlightProfile, setHighlightProfile] = useState(false);
+		const [route, setRoute] = useState(typeof window !== 'undefined' ? window.location.pathname : '/');
+		const navigate = (path) => { if (typeof window !== 'undefined') { window.history.pushState({}, '', path); setRoute(path); } };
+		useEffect(() => {
+			const onPop = () => setRoute(window.location.pathname);
+			window.addEventListener('popstate', onPop);
+			return () => window.removeEventListener('popstate', onPop);
+		}, []);
 
 		const addToast = (text, tone = 'info') => {
 			const id = Math.random().toString(36).slice(2);
@@ -904,6 +912,17 @@ function App() {
 		);
 	}
 
+	// Dedicated Profile route
+	if (route.startsWith('/profile')) {
+		const uname = route.split('/')[2] || (user?.username || '');
+		return (
+			<>
+				<GlobalStyle dark={dark} />
+				<ProfilePage apiBase={API} currentUser={user} username={uname} dark={dark} goHome={() => navigate('/')} />
+			</>
+		);
+	}
+
 	// Authenticated view
 	return (
 		<>
@@ -928,7 +947,7 @@ function App() {
 								<>
 									<Backdrop onClick={() => setMenuOpen(false)} />
 									<Menu role="menu" aria-label="Profile">
-										<MenuItem role="menuitem" onClick={() => { setMenuOpen(false); profileRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); setHighlightProfile(true); setTimeout(() => setHighlightProfile(false), 1200); }}>Profile</MenuItem>
+										<MenuItem role="menuitem" onClick={() => { setMenuOpen(false); navigate(`/profile/${user.username}`); }}>Profile</MenuItem>
 										<MenuItem role="menuitem" onClick={() => { setMenuOpen(false); logout(); }}>Logout</MenuItem>
 									</Menu>
 								</>
