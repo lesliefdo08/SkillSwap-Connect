@@ -139,12 +139,31 @@ app.post('/badge', (req, res) => {
   res.json({ success: true });
 });
 
+// Remove a badge from a user
+app.delete('/badge', (req, res) => {
+  const { username, userId, badge } = req.body || {};
+  const key = username || users.find((u) => u.id === userId)?.username;
+  if (!key || !badge) return res.status(400).json({ error: 'username (or userId) and badge are required' });
+  const list = badgesByUsername[key];
+  if (!list) return res.json({ success: true });
+  const before = list.length;
+  badgesByUsername[key] = list.filter((b) => b.toLowerCase() !== String(badge).toLowerCase());
+  return res.json({ success: true, removed: before !== badgesByUsername[key].length });
+});
+
 app.get('/leaderboard', (_req, res) => {
   // Combine users list with badges map so every user appears
   const usernames = new Set([...Object.keys(badgesByUsername), ...users.map((u) => u.username)]);
   const leaderboard = Array.from(usernames).map((username) => {
     const list = badgesByUsername[username] || [];
-    return { username, badges: list.length, badgesList: list };
+    const profile = users.find((u) => u.username === username);
+    return {
+      username,
+      badges: list.length,
+      badgesList: list,
+      skillsOffered: profile?.skillsOffered || [],
+      skillsWanted: profile?.skillsWanted || [],
+    };
   });
   leaderboard.sort((a, b) => (b.badges - a.badges) || a.username.localeCompare(b.username));
   res.json(leaderboard);

@@ -172,6 +172,22 @@ const SkillTag = styled.span`
 const BadgeChip = styled(SkillTag)`
 	background: rgba(255, 159, 64, 0.18);
 	color: ${colors.brandDark};
+	position: relative;
+`;
+const ChipClose = styled.button`
+	position: absolute;
+	top: -6px;
+	right: -6px;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	border: none;
+	background: #fff;
+	color: ${colors.brandDark};
+	box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+	cursor: pointer;
+	line-height: 18px;
+	font-size: 12px;
 `;
 
 const Row = styled.div`
@@ -961,18 +977,36 @@ function App() {
 																				<Avatar $bg={'#F59E0B'} aria-hidden>{l.username.slice(0,2).toUpperCase()}</Avatar>
 																				<span><b>{l.username}</b> – Badges: {l.badges}</span>
 																			</div>
-																			{Array.isArray(l.badgesList) && l.badgesList.length > 0 && (
+																													{Array.isArray(l.badgesList) && l.badgesList.length > 0 && (
 																				<div style={{ marginTop: space(1), display: 'flex', flexWrap: 'wrap' }}>
-																					{l.badgesList.map((bname, i) => (
-																						<BadgeChip key={i}>{bname}</BadgeChip>
-																					))}
+																															{l.badgesList.map((bname, i) => (
+																																<div key={i} style={{ position: 'relative', marginRight: space(1), marginBottom: space(1) }}>
+																																	<BadgeChip>{bname}</BadgeChip>
+																																	{l.username !== user.username && (
+																																		<ChipClose aria-label={`Remove ${bname}`} title="Remove badge" onClick={async () => {
+																																			try {
+																																				await fetch(`${API}/badge`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: l.username, badge: bname }) });
+																																				fetchLeaderboard();
+																																				addToast('Badge removed', 'success');
+																																			} catch {}
+																																		}}>×</ChipClose>
+																																	)}
+																																</div>
+																															))}
 																				</div>
 																			)}
-																			{l.username !== user.username && (
+																													{l.username !== user.username && (
 																				<ActionRow style={{ marginTop: space(1) }}>
 																					<InputSmall aria-label={`Badge for ${l.username}`} placeholder="Badge name" value={badge} onChange={e => setBadge(e.target.value)} />
 																					<Button aria-label={`Award badge to ${l.username}`} onClick={() => awardBadge(l.username)}>Award</Button>
-																					{suggestions.map(sug => (
+																															{(() => {
+																																const skillBased = [
+																																	...(l.skillsOffered || []).map(s => `${s} Mentor`),
+																																	...(l.skillsWanted || []).map(s => `Learning ${s}`)
+																																];
+																																const unique = Array.from(new Set([...suggestions, ...skillBased])).slice(0, 5);
+																																return unique;
+																															})().map(sug => (
 																						<GhostButton key={sug} onClick={() => { setBadge(sug); setTimeout(() => awardBadge(l.username), 0); }}>+ {sug}</GhostButton>
 																					))}
 																				</ActionRow>
