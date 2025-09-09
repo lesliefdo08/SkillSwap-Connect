@@ -176,7 +176,7 @@ const Row = styled.div`
 
 const Grid = styled.div`
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 	gap: ${space(3)};
 	@media (max-width: ${bp.sm}) {
 		gap: ${space(2)};
@@ -215,6 +215,11 @@ const Avatar = styled.div`
 	font-weight: 700;
 	font-size: 0.9rem;
 	flex-shrink: 0;
+	@media (max-width: ${bp.sm}) {
+		width: 32px;
+		height: 32px;
+		font-size: 0.85rem;
+	}
 `;
 
 // Toasts
@@ -334,7 +339,7 @@ const StatBar = styled.div`
 	}
 `;
 const StatBox = styled.div`
-	background: #fff;
+	background: var(--card-bg);
 	border-radius: 14px;
 	padding: ${space(2)};
 	box-shadow: 0 10px 30px rgba(16,24,40,0.08);
@@ -415,6 +420,19 @@ const Backdrop = styled.div`
 	position: fixed; inset: 0; background: transparent; z-index: 1000;
 `;
 
+// Action row for list items (wrap nicely on phones)
+const ActionRow = styled.div`
+	display: flex;
+	gap: ${space(1)};
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	@media (max-width: ${bp.sm}) {
+		width: 100%;
+		justify-content: stretch;
+		& > ${Button}, & > ${GhostButton} { width: 100%; }
+	}
+`;
+
 function App() {
 	const [user, setUser] = useState(null);
 	const [username, setUsername] = useState('');
@@ -434,6 +452,7 @@ function App() {
 		const [sessions, setSessions] = useState([]);
 		const [loadingSessions, setLoadingSessions] = useState(false);
 		const [stats, setStats] = useState({ users: 0, thanks: 0, badges: 0 });
+		const [menuOpen, setMenuOpen] = useState(false);
 
 		const addToast = (text, tone = 'info') => {
 			const id = Math.random().toString(36).slice(2);
