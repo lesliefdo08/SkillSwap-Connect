@@ -80,9 +80,9 @@ const Brand = styled.div`
 	flex-direction: column;
 	align-items: flex-start;
 	gap: 6px;
-	& img.wordmark { height: 56px; max-width: 100%; }
-	@media (max-width: ${bp.md}) { & img.wordmark { height: 48px; } }
-	@media (max-width: ${bp.sm}) { & img.wordmark { height: 42px; } }
+	& img.wordmark { height: 64px; max-width: 100%; }
+	@media (max-width: ${bp.md}) { & img.wordmark { height: 56px; } }
+	@media (max-width: ${bp.sm}) { & img.wordmark { height: 48px; } }
 `;
 const Title = styled.h1`
 	margin: 0;
