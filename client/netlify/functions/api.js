@@ -132,19 +132,21 @@ app.post('/badge', (req, res) => {
   const key = username || users.find((u) => u.id === userId)?.username;
   if (!key || !badge) return res.status(400).json({ error: 'username (or userId) and badge are required' });
   if (!badgesByUsername[key]) badgesByUsername[key] = [];
-  badgesByUsername[key].push(badge);
+  // prevent duplicates (case-insensitive)
+  if (!badgesByUsername[key].some((b) => b.toLowerCase() === String(badge).toLowerCase())) {
+    badgesByUsername[key].push(badge);
+  }
   res.json({ success: true });
 });
 
 app.get('/leaderboard', (_req, res) => {
-  const leaderboard = Object.entries(badgesByUsername)
-    .map(([username, list]) => ({ username, badges: list.length }))
-    .sort((a, b) => b.badges - a.badges);
-  // ensure users with zero badges also show up
-  users.forEach((u) => {
-    if (!leaderboard.find((l) => l.username === u.username)) leaderboard.push({ username: u.username, badges: 0 });
+  // Combine users list with badges map so every user appears
+  const usernames = new Set([...Object.keys(badgesByUsername), ...users.map((u) => u.username)]);
+  const leaderboard = Array.from(usernames).map((username) => {
+    const list = badgesByUsername[username] || [];
+    return { username, badges: list.length, badgesList: list };
   });
-  leaderboard.sort((a, b) => b.badges - a.badges);
+  leaderboard.sort((a, b) => (b.badges - a.badges) || a.username.localeCompare(b.username));
   res.json(leaderboard);
 });
 
@@ -189,11 +191,25 @@ function seedDemo() {
   });
   // Badges
   badgesByUsername['alex'] = badgesByUsername['alex'] || [];
-  if (badgesByUsername['alex'].length < 2) {
-    badgesByUsername['alex'].push('Super Teacher', 'Helper');
-  }
+  ['Super Teacher','Helper','Mentor'].forEach((b) => {
+    if (!badgesByUsername['alex'].some(x => x.toLowerCase() === b.toLowerCase())) badgesByUsername['alex'].push(b);
+  });
   badgesByUsername['taylor'] = badgesByUsername['taylor'] || [];
-  if (!badgesByUsername['taylor'].includes('Fast Learner')) badgesByUsername['taylor'].push('Fast Learner');
+  ['Fast Learner','Creative Chef'].forEach((b) => {
+    if (!badgesByUsername['taylor'].some(x => x.toLowerCase() === b.toLowerCase())) badgesByUsername['taylor'].push(b);
+  });
+  badgesByUsername['demo'] = badgesByUsername['demo'] || [];
+  ['Community Star'].forEach((b) => {
+    if (!badgesByUsername['demo'].some(x => x.toLowerCase() === b.toLowerCase())) badgesByUsername['demo'].push(b);
+  });
+  badgesByUsername['sam'] = badgesByUsername['sam'] || [];
+  ['Collaborator'].forEach((b) => {
+    if (!badgesByUsername['sam'].some(x => x.toLowerCase() === b.toLowerCase())) badgesByUsername['sam'].push(b);
+  });
+  badgesByUsername['jordan'] = badgesByUsername['jordan'] || [];
+  ['Rising Talent'].forEach((b) => {
+    if (!badgesByUsername['jordan'].some(x => x.toLowerCase() === b.toLowerCase())) badgesByUsername['jordan'].push(b);
+  });
   // Thanks
   if (thanksWall.length === 0) {
     thanksWall.push({ id: uuidv4(), from: 'demo', to: 'alex', message: 'Thanks for the awesome guitar session!', time: Date.now() });

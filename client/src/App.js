@@ -169,6 +169,11 @@ const SkillTag = styled.span`
 	}
 `;
 
+const BadgeChip = styled(SkillTag)`
+	background: rgba(255, 159, 64, 0.18);
+	color: ${colors.brandDark};
+`;
+
 const Row = styled.div`
 	display: flex;
 	align-items: center;
@@ -947,20 +952,35 @@ function App() {
 						) : leaderboard.length === 0 ? (
 							<p style={{ color: colors.muted, marginTop: 0 }}>No badges yet.</p>
 						) : (
-							<ol style={{ margin: 0, paddingLeft: space(3) }}>
-								{leaderboard.map(l => (
-									<li key={l.username} style={{ marginBottom: space(1.5), display: 'flex', alignItems: 'center' }}>
-										<Avatar $bg={'#F59E0B'} aria-hidden>{l.username.slice(0,2).toUpperCase()}</Avatar>
-										<span style={{ marginLeft: space(1) }}><b>{l.username}</b> – Badges: {l.badges}</span>
-											{l.username !== user.username && (
-												<ActionRow>
-													<InputSmall aria-label={`Badge for ${l.username}`} placeholder="Badge name" value={badge} onChange={e => setBadge(e.target.value)} />
-													<Button aria-label={`Award badge to ${l.username}`} onClick={() => awardBadge(l.username)}>Award</Button>
-												</ActionRow>
-											)}
-									</li>
-								))}
-							</ol>
+														<ol style={{ margin: 0, paddingLeft: space(3) }}>
+																{leaderboard.map(l => {
+																	const suggestions = ['Team Player','Problem Solver','Great Mentor'];
+																	return (
+																		<li key={l.username} style={{ marginBottom: space(1.5) }}>
+																			<div style={{ display: 'flex', alignItems: 'center', gap: space(1) }}>
+																				<Avatar $bg={'#F59E0B'} aria-hidden>{l.username.slice(0,2).toUpperCase()}</Avatar>
+																				<span><b>{l.username}</b> – Badges: {l.badges}</span>
+																			</div>
+																			{Array.isArray(l.badgesList) && l.badgesList.length > 0 && (
+																				<div style={{ marginTop: space(1), display: 'flex', flexWrap: 'wrap' }}>
+																					{l.badgesList.map((bname, i) => (
+																						<BadgeChip key={i}>{bname}</BadgeChip>
+																					))}
+																				</div>
+																			)}
+																			{l.username !== user.username && (
+																				<ActionRow style={{ marginTop: space(1) }}>
+																					<InputSmall aria-label={`Badge for ${l.username}`} placeholder="Badge name" value={badge} onChange={e => setBadge(e.target.value)} />
+																					<Button aria-label={`Award badge to ${l.username}`} onClick={() => awardBadge(l.username)}>Award</Button>
+																					{suggestions.map(sug => (
+																						<GhostButton key={sug} onClick={() => { setBadge(sug); setTimeout(() => awardBadge(l.username), 0); }}>+ {sug}</GhostButton>
+																					))}
+																				</ActionRow>
+																			)}
+																		</li>
+																	);
+																})}
+														</ol>
 						)}
 					</Card>
 				</Grid>
