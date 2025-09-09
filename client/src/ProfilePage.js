@@ -72,12 +72,12 @@ export default function ProfilePage({ apiBase, currentUser, username, dark, goHo
           fetch(`${apiBase}/leaderboard`),
           fetch(`${apiBase}/thanks`),
         ]);
-  const lb = await lbRes.json();
-  const thx = await thxRes.json();
-  const row = toArray(lb).find(r => r.username === me);
-  setBadges(toArray(row?.badgesList));
-  setThanksGiven(toArray(thx).filter(t => t.from === me));
-  setThanksReceived(toArray(thx).filter(t => t.to === me));
+        const lb = await lbRes.json();
+        const thx = await thxRes.json();
+        const row = toArray(lb).find(r => r.username === me);
+        setBadges(toArray(row?.badgesList));
+        setThanksGiven(toArray(thx).filter(t => t.from === me));
+        setThanksReceived(toArray(thx).filter(t => t.to === me));
         if (currentUser?.id) {
           const sRes = await fetch(`${apiBase}/sessions/${currentUser.id}`);
           const ss = await sRes.json();
@@ -98,11 +98,30 @@ export default function ProfilePage({ apiBase, currentUser, username, dark, goHo
   const max = Math.max(1, badges.length, thanksGiven.length, thanksReceived.length, accepted + pending);
   const h = (v) => Math.round((v / max) * 120);
 
+  const shareProfile = async () => {
+    try {
+      const url = `${window.location.origin}/profile/${me}`;
+      if (navigator.share) {
+        await navigator.share({ title: `@${me} on SkillSwap Connect`, text: 'Check out this profile on SkillSwap Connect', url });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        alert('Profile link copied to clipboard');
+      } else {
+        prompt('Copy your profile link', url);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <Shell>
       <Header>
         <Title>Profile</Title>
-        <Button onClick={goHome}>← Back</Button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button onClick={shareProfile}>Share Profile</Button>
+          <Button onClick={goHome}>← Back</Button>
+        </div>
       </Header>
 
       <Grid>
