@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import ProfilePage from './ProfilePage';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+const ProfilePage = lazy(() => import('./ProfilePage'));
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
 
@@ -539,7 +539,9 @@ function App() {
 	const [badge, setBadge] = useState('');
 		const [toasts, setToasts] = useState([]);
 		const [confetti, setConfetti] = useState(false);
-		const [dark, setDark] = useState(false);
+		const [dark, setDark] = useState(() => {
+			try { return localStorage.getItem('ssc:dark') === '1'; } catch { return false; }
+		});
 		const [loadingThanks, setLoadingThanks] = useState(false);
 		const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
 		const [sessions, setSessions] = useState([]);
@@ -578,6 +580,10 @@ function App() {
 			setSessions([]);
 			addToast('Logged out', 'info');
 		};
+
+		useEffect(() => {
+			try { localStorage.setItem('ssc:dark', dark ? '1' : '0'); } catch {}
+		}, [dark]);
 
 		// Demo data seeding
 		const demoUsers = [
@@ -707,7 +713,10 @@ function App() {
 		};
 
 		const openSessionModal = (toUser) => {
-			setModal({ open: true, type: 'session', title: `Propose session with ${toUser.username}`, fields: { skill: '', time: '' }, target: toUser, message: '' });
+			const now = new Date();
+			const pad = (n) => String(n).padStart(2, '0');
+			const local = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+			setModal({ open: true, type: 'session', title: `Propose session with ${toUser.username}`, fields: { skill: '', time: local }, target: toUser, message: '' });
 		};
 
 		const acceptSession = async (sessionId) => {
@@ -784,7 +793,12 @@ function App() {
 				fetchThanks();
 			}
 			if (modal.type === 'session') {
-				const res = await fetch(`${API}/session`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fromId: user.id, toId: modal.target.id, skill: modal.fields.skill, time: modal.fields.time }) });
+				// validate
+				if (!modal.fields.skill?.trim()) throw new Error('Please enter a skill');
+				const when = new Date(modal.fields.time);
+				if (isNaN(when.getTime())) throw new Error('Please choose a valid date and time');
+				const iso = when.toISOString();
+				const res = await fetch(`${API}/session`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fromId: user.id, toId: modal.target.id, skill: modal.fields.skill.trim(), time: iso }) });
 				if (!res.ok) throw new Error('Could not create session');
 				addToast('Session proposed', 'success');
 				fetchSessions();
@@ -911,8 +925,8 @@ function App() {
 								<div>
 									<Label htmlFor="skill">Skill</Label>
 									<Input id="skill" value={modal.fields.skill} onChange={(e) => setModal(m => ({ ...m, fields: { ...m.fields, skill: e.target.value } }))} />
-									<Label htmlFor="time" style={{ marginTop: space(1) }}>Time</Label>
-									<Input id="time" placeholder="e.g., 2025-09-08 18:00" value={modal.fields.time} onChange={(e) => setModal(m => ({ ...m, fields: { ...m.fields, time: e.target.value } }))} />
+									<Label htmlFor="time" style={{ marginTop: space(1) }}>Date & time</Label>
+									<Input id="time" type="datetime-local" value={modal.fields.time} onChange={(e) => setModal(m => ({ ...m, fields: { ...m.fields, time: e.target.value } }))} />
 									<DialogActions>
 										<GhostButton onClick={() => setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' })}>Cancel</GhostButton>
 										<Button onClick={confirmModal}>Propose</Button>
@@ -945,7 +959,9 @@ function App() {
 		return (
 			<>
 				<GlobalStyle dark={dark} />
-				<ProfilePage apiBase={API} currentUser={user} username={uname} dark={dark} goHome={() => navigate('/')} />
+				<Suspense fallback={<div style={{ padding: 24 }}><span style={{ color: 'var(--muted)' }}>Loading profile…</span></div>}>
+					<ProfilePage apiBase={API} currentUser={user} username={uname} dark={dark} goHome={() => navigate('/')} />
+				</Suspense>
 			</>
 		);
 	}
@@ -1182,22 +1198,20 @@ function App() {
 
 				{/* Confetti burst */}
 				{confetti && (
-					<ConfettiLayer>
+					<ConfettiLayer aria-hidden>
 						{Array.from({ length: 36 }).map((_, i) => {
-							const left = 50; // center
-							const top = 20;  // near header
 							const angle = (i / 36) * Math.PI * 2;
-							const distance = 200 + Math.random() * 120;
+							const distance = 180 + Math.random() * 120;
 							const x = Math.cos(angle) * distance;
 							const y = Math.sin(angle) * distance;
-							const colorPool = ['#F59E0B','#84CC16','#10B981','#3B82F6','#A855F7','#EC4899'];
-							const color = colorPool[i % colorPool.length];
-							const delay = Math.random() * 0.1;
+							const hue = Math.round((i / 36) * 360);
 							return (
-								<Particle key={i} style={{ left: `${left}%`, top: `${top}px`, background: color }}
-									initial={{ opacity: 0, x: 0, y: 0, rotate: 0 }}
-									animate={{ opacity: 1, x, y, rotate: Math.random() * 360 }}
-									transition={{ duration: 0.7, ease: 'easeOut', delay }}
+								<Particle
+									key={i}
+									initial={{ left: '50%', top: '10%', opacity: 1, x: 0, y: 0, rotate: 0 }}
+									animate={{ x, y, rotate: 360, opacity: 0 }}
+									transition={{ duration: 0.8, ease: 'ease-out' }}
+									style={{ background: `hsl(${hue} 90% 55%)` }}
 								/>
 							);
 						})}

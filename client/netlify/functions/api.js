@@ -189,6 +189,10 @@ app.get('/suggest', (_req, res) => {
 
 // Health
 app.get('/health', (_req, res) => res.json({ ok: true }));
+// Serve a lightweight OG card reference. For Netlify static, /og-card.png can point to /og-card.svg.
+app.get('/.netlify/functions/api/og-card.png', (req, res) => {
+  res.redirect(301, '/og-card.svg');
+});
 
 // Demo seed on cold start
 function seedDemo() {
