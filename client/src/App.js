@@ -558,7 +558,7 @@ function App() {
 			const id = Math.random().toString(36).slice(2);
 			const color = tone === 'success' ? '#10B981' : tone === 'error' ? '#EF4444' : colors.brand2;
 			setToasts(t => [...t, { id, text, color }]);
-			setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+			setTimeout(() => setToasts(t => (Array.isArray(t) ? t.filter(x => x.id !== id) : [])), 3000);
 		};
 
 		const burstConfetti = () => {
@@ -814,7 +814,7 @@ function App() {
 				<Shell>
 					<HeaderBar initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
 						<Brand>
-							<img src="/logo-wordmark.svg" alt="SkillSwap Connect by Leslie Fernando" style={{ height: 36 }} />
+							<img src="/logo-wordmark.svg" alt="SkillSwap Connect by Leslie Fernando" style={{ height: 44 }} />
 							<SubTitle>Teach what you know. Learn what you love.</SubTitle>
 						</Brand>
 						<Row>
@@ -937,7 +937,7 @@ function App() {
 			<Shell>
 				<HeaderBar initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
 					<Brand>
-						<img src="/logo-wordmark.svg" alt="SkillSwap Connect by Leslie Fernando" style={{ height: 32 }} />
+						<img src="/logo-wordmark.svg" alt="SkillSwap Connect by Leslie Fernando" style={{ height: 40 }} />
 						<SubTitle>Share your skills and match with peers</SubTitle>
 					</Brand>
 					<Row>

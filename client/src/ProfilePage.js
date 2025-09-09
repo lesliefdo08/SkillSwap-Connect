@@ -92,8 +92,8 @@ export default function ProfilePage({ apiBase, currentUser, username, dark, goHo
   }, [apiBase, me, currentUser]);
 
   const initials = (me || '?').slice(0, 2).toUpperCase();
-  const accepted = sessions.filter(s => s.status === 'accepted').length;
-  const pending = sessions.filter(s => s.status !== 'accepted').length;
+  const accepted = (Array.isArray(sessions) ? sessions : []).filter(s => s.status === 'accepted').length;
+  const pending = (Array.isArray(sessions) ? sessions : []).filter(s => s.status !== 'accepted').length;
 
   const max = Math.max(1, badges.length, thanksGiven.length, thanksReceived.length, accepted + pending);
   const h = (v) => Math.round((v / max) * 120);
@@ -163,12 +163,12 @@ export default function ProfilePage({ apiBase, currentUser, username, dark, goHo
         <Col span={12}>
           <Card style={{ marginTop: 16 }}>
             <h3 style={{ marginTop: 0, color: colors.brandDark }}>Recent Thanks</h3>
-            {thanksGiven.length + thanksReceived.length === 0 ? (
+            {toArray(thanksGiven).length + toArray(thanksReceived).length === 0 ? (
               <div style={{ color: colors.muted }}>No activity yet.</div>
             ) : (
               <List>
-                {[...thanksGiven.map(t => ({ ...t, _kind: 'Given' })), ...thanksReceived.map(t => ({ ...t, _kind: 'Received' }))]
-                  .sort((a,b) => b.time - a.time)
+                {[...toArray(thanksGiven).map(t => ({ ...t, _kind: 'Given' })), ...toArray(thanksReceived).map(t => ({ ...t, _kind: 'Received' }))]
+                  .sort((a,b) => (b?.time || 0) - (a?.time || 0))
                   .slice(0,5)
                   .map(t => (
                     <ListItem key={t.id}>
