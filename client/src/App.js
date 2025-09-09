@@ -629,6 +629,7 @@ function App() {
 				if (!res.ok) throw new Error('Failed to sign in');
 				const data = await res.json();
 				setUser(data);
+				try { localStorage.setItem('ssc:lastUser', data.username); } catch {}
 				setSkillsOffered(data.skillsOffered || []);
 				setSkillsWanted(data.skillsWanted || []);
 				addToast(`Welcome ${data.username}!`, 'success');
@@ -746,6 +747,11 @@ function App() {
 		fetchThanks();
 		fetchLeaderboard();
 		fetchSessions();
+		// auto-fill last user
+		try {
+			const last = localStorage.getItem('ssc:lastUser');
+			if (last && !user) setUsername(last);
+		} catch {}
 	}, []);
 
 	// Load matches and sessions after user logs in
@@ -877,7 +883,18 @@ function App() {
 
 				{/* Modal */}
 				{modal.open && (
-					<Overlay role="dialog" aria-modal="true" aria-label={modal.title} onClick={(e) => { if (e.target === e.currentTarget) setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' }); }}>
+					<Overlay role="dialog" aria-modal="true" aria-label={modal.title}
+						onKeyDown={(e) => {
+							if (e.key === 'Escape') setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' });
+							if (e.key === 'Tab') {
+								const focusable = e.currentTarget.querySelectorAll('button, [href], input, textarea');
+								const first = focusable[0];
+								const last = focusable[focusable.length - 1];
+								if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+								else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+							}
+						}}
+						onClick={(e) => { if (e.target === e.currentTarget) setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' }); }}>
 						<Dialog onClick={(e) => e.stopPropagation()}>
 							<DialogTitle>{modal.title}</DialogTitle>
 							{modal.type === 'thanks' && (
