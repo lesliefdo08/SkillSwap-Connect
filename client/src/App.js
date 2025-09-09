@@ -79,7 +79,10 @@ const Brand = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
-	gap: 4px;
+	gap: 6px;
+	& img.wordmark { height: 56px; max-width: 100%; }
+	@media (max-width: ${bp.md}) { & img.wordmark { height: 48px; } }
+	@media (max-width: ${bp.sm}) { & img.wordmark { height: 42px; } }
 `;
 const Title = styled.h1`
 	margin: 0;
@@ -814,7 +817,7 @@ function App() {
 				<Shell>
 					<HeaderBar initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
 						<Brand>
-							<img src="/logo-wordmark.svg" alt="SkillSwap Connect by Leslie Fernando" style={{ height: 44 }} />
+							<img className="wordmark" src={dark ? "/logo-wordmark-dark.svg" : "/logo-wordmark.svg"} alt="SkillSwap Connect by Leslie Fernando" />
 							<SubTitle>Teach what you know. Learn what you love.</SubTitle>
 						</Brand>
 						<Row>
@@ -937,7 +940,7 @@ function App() {
 			<Shell>
 				<HeaderBar initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
 					<Brand>
-						<img src="/logo-wordmark.svg" alt="SkillSwap Connect by Leslie Fernando" style={{ height: 40 }} />
+						<img className="wordmark" src={dark ? "/logo-wordmark-dark.svg" : "/logo-wordmark.svg"} alt="SkillSwap Connect by Leslie Fernando" />
 						<SubTitle>Share your skills and match with peers</SubTitle>
 					</Brand>
 					<Row>

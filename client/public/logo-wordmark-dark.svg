@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="96" viewBox="0 0 520 96" role="img" aria-labelledby="title desc">
+  <title id="title">SkillSwap Connect wordmark (dark)</title>
+  <desc id="desc">Wordmark tuned for dark backgrounds with white text and warm gradient accent.</desc>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#FDBA74"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="none"/>
+  <g transform="translate(12,12)">
+    <circle cx="32" cy="32" r="32" fill="rgba(253,186,116,0.16)"/>
+    <path d="M22 24c0-6 5-11 11-11h8c5 0 9 4 9 9s-4 9-9 9h-5" fill="none" stroke="url(#g)" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="45,38 37,31 53,31" fill="url(#g)"/>
+    <path d="M40 46c0 6-5 11-11 11h-8c-5 0-9-4-9-9s4-9 9-9h8" fill="none" stroke="url(#g)" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="31,38 39,45 23,45" fill="url(#g)"/>
+  </g>
+  <g font-family="Segoe UI, Arial, sans-serif" font-weight="800">
+    <text x="92" y="48" font-size="36" fill="url(#g)">SkillSwap</text>
+    <text x="255" y="48" font-size="36" fill="#FFFFFF">Connect</text>
+  </g>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#9CA3AF">
+    <text x="92" y="72">by Leslie Fernando</text>
+  </g>
+</svg>
