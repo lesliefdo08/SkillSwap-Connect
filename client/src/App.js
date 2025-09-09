@@ -84,18 +84,6 @@ const Brand = styled.div`
 	@media (max-width: ${bp.md}) { & img.wordmark { height: 56px; } }
 	@media (max-width: ${bp.sm}) { & img.wordmark { height: 48px; } }
 `;
-const Title = styled.h1`
-	margin: 0;
-	font-size: 2rem;
-	letter-spacing: 0.2px;
-	background: linear-gradient(90deg, ${colors.brand1}, ${colors.brand2});
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	@media (max-width: ${bp.sm}) {
-		font-size: 1.6rem;
-	}
-`;
 const SubTitle = styled.span`
 	color: var(--muted);
 	font-size: 0.95rem;
@@ -549,8 +537,7 @@ function App() {
 		const [stats, setStats] = useState({ users: 0, thanks: 0, badges: 0 });
 		const [menuOpen, setMenuOpen] = useState(false);
 		const [modal, setModal] = useState({ open: false, type: null, title: '', fields: {}, target: null, message: '' });
-		const profileRef = useRef(null);
-		const [highlightProfile, setHighlightProfile] = useState(false);
+	const resetModal = () => setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' });
 		const [route, setRoute] = useState(typeof window !== 'undefined' ? window.location.pathname : '/');
 		const navigate = (path) => { if (typeof window !== 'undefined') { window.history.pushState({}, '', path); setRoute(path); } };
 		useEffect(() => {
@@ -797,6 +784,7 @@ function App() {
 				if (!modal.fields.skill?.trim()) throw new Error('Please enter a skill');
 				const when = new Date(modal.fields.time);
 				if (isNaN(when.getTime())) throw new Error('Please choose a valid date and time');
+				if (when.getTime() < Date.now()) throw new Error('Please choose a future time');
 				const iso = when.toISOString();
 				const res = await fetch(`${API}/session`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fromId: user.id, toId: modal.target.id, skill: modal.fields.skill.trim(), time: iso }) });
 				if (!res.ok) throw new Error('Could not create session');
@@ -855,18 +843,16 @@ function App() {
 								<GhostButton aria-label="Load demo data" onClick={loadDemoData}>Load Demo Data</GhostButton>
 							</HeroActions>
 							<StatBar>
-								<StatBox>
-									<span style={{ color: colors.muted }}>Community</span>
-									<BigNumber>{stats.users || 5}+</BigNumber>
-								</StatBox>
-								<StatBox>
-									<span style={{ color: colors.muted }}>Thank-yous</span>
-									<BigNumber>{thanksWall.length}</BigNumber>
-								</StatBox>
-								<StatBox>
-									<span style={{ color: colors.muted }}>Badges earned</span>
-									<BigNumber>{leaderboard.reduce((sum, r) => sum + (r.badges || 0), 0)}</BigNumber>
-								</StatBox>
+								{[
+									{ label: 'Community', value: `${stats.users || 5}+` },
+									{ label: 'Thank-yous', value: String(thanksWall.length) },
+									{ label: 'Badges earned', value: String(leaderboard.reduce((sum, r) => sum + (r.badges || 0), 0)) },
+								].map((s, i) => (
+									<StatBox key={i}>
+										<span style={{ color: colors.muted }}>{s.label}</span>
+										<BigNumber>{s.value}</BigNumber>
+									</StatBox>
+								))}
 							</StatBar>
 						</div>
 						<div style={{ position: 'relative' }}>
@@ -899,7 +885,7 @@ function App() {
 				{modal.open && (
 					<Overlay role="dialog" aria-modal="true" aria-label={modal.title}
 						onKeyDown={(e) => {
-							if (e.key === 'Escape') setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' });
+							if (e.key === 'Escape') resetModal();
 							if (e.key === 'Tab') {
 								const focusable = e.currentTarget.querySelectorAll('button, [href], input, textarea');
 								const first = focusable[0];
@@ -908,7 +894,7 @@ function App() {
 								else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
 							}
 						}}
-						onClick={(e) => { if (e.target === e.currentTarget) setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' }); }}>
+						onClick={(e) => { if (e.target === e.currentTarget) resetModal(); }}>
 						<Dialog onClick={(e) => e.stopPropagation()}>
 							<DialogTitle>{modal.title}</DialogTitle>
 							{modal.type === 'thanks' && (
@@ -916,7 +902,7 @@ function App() {
 									<Label htmlFor="thanksMsg">Message</Label>
 									<TextArea id="thanksMsg" value={modal.fields.message} onChange={(e) => setModal(m => ({ ...m, fields: { ...m.fields, message: e.target.value } }))} />
 									<DialogActions>
-										<GhostButton onClick={() => setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' })}>Cancel</GhostButton>
+										<GhostButton onClick={resetModal}>Cancel</GhostButton>
 										<Button onClick={confirmModal}>Send</Button>
 									</DialogActions>
 								</div>
@@ -928,7 +914,7 @@ function App() {
 									<Label htmlFor="time" style={{ marginTop: space(1) }}>Date & time</Label>
 									<Input id="time" type="datetime-local" value={modal.fields.time} onChange={(e) => setModal(m => ({ ...m, fields: { ...m.fields, time: e.target.value } }))} />
 									<DialogActions>
-										<GhostButton onClick={() => setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' })}>Cancel</GhostButton>
+										<GhostButton onClick={resetModal}>Cancel</GhostButton>
 										<Button onClick={confirmModal}>Propose</Button>
 									</DialogActions>
 								</div>
@@ -942,7 +928,7 @@ function App() {
 								<div>
 									<p style={{ marginTop: 0 }}>{modal.message}</p>
 									<DialogActions>
-										<Button onClick={() => setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' })}>Close</Button>
+										<Button onClick={resetModal}>Close</Button>
 									</DialogActions>
 								</div>
 							)}
@@ -1000,7 +986,7 @@ function App() {
 				</HeaderBar>
 
 				<Grid>
-					<Card ref={profileRef} $highlight={highlightProfile} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+					<Card initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
 						<SectionTitle>Your Profile</SectionTitle>
 						<div style={{ marginBottom: space(1) }}>
 							<b>Skills you can teach:</b>
