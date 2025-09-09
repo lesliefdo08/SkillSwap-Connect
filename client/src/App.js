@@ -98,6 +98,8 @@ const Card = styled(motion.section)`
 	border-radius: var(--radius);
 	box-shadow: 0 10px 30px rgba(16, 24, 40, 0.08);
 	padding: ${space(3)};
+	width: 100%;
+	min-height: 120px;
 	@media (max-width: ${bp.sm}) {
 		padding: ${space(2)};
 	}
@@ -178,8 +180,8 @@ const Row = styled.div`
 `;
 
 const Grid = styled.div`
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	display: flex;
+	flex-direction: column;
 	gap: ${space(3)};
 	@media (max-width: ${bp.sm}) {
 		gap: ${space(2)};
@@ -900,7 +902,7 @@ function App() {
 
 					<Card initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
 						<SectionTitle>Wall of Thanks</SectionTitle>
-						<div style={{ maxHeight: 200, overflowY: 'auto', paddingRight: space(1) }}>
+						<div>
 							{loadingThanks ? (
 								<List>
 									{Array.from({ length: 5 }).map((_, i) => (
