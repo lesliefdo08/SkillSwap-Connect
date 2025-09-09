@@ -300,6 +300,62 @@ const Particle = styled(motion.span)`
 	border-radius: 2px;
 `;
 
+// Modal components
+const Overlay = styled.div`
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.35);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 2000;
+	padding: ${space(2)};
+`;
+const Dialog = styled.div`
+	background: var(--card-bg);
+	border-radius: 16px;
+	width: 100%;
+	max-width: 520px;
+	box-shadow: 0 20px 60px rgba(16,24,40,0.25);
+	padding: ${space(3)};
+`;
+const DialogTitle = styled.h3`
+	margin: 0 0 ${space(2)};
+	color: ${colors.brandDark};
+`;
+const DialogActions = styled.div`
+	display: flex;
+	gap: ${space(1)};
+	justify-content: flex-end;
+	margin-top: ${space(2)};
+	flex-wrap: wrap;
+`;
+const Label = styled.label`
+	display: block;
+	font-size: 0.9rem;
+	color: var(--muted);
+	margin-bottom: 6px;
+`;
+const TextArea = styled.textarea`
+	width: 100%;
+	min-height: 92px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	border: 1px solid #F4C6A5;
+	outline: none;
+	resize: vertical;
+`;
+const spin = keyframes`
+	to { transform: rotate(360deg); }
+`;
+const Spinner = styled.div`
+	width: 22px; height: 22px;
+	border-radius: 50%;
+	border: 3px solid rgba(0,0,0,0.1);
+	border-top-color: ${colors.brand1};
+	animation: ${spin} 0.9s linear infinite;
+`;
+
 // Skeletons
 const shimmer = keyframes`
 	0% { background-position: -200px 0; }
@@ -337,7 +393,8 @@ const Hero = styled.div`
 const BigTitle = styled.h1`
 	margin: 0 0 ${space(1)};
 	font-size: 3.6rem;
-	line-height: 1.1;
+	line-height: 1.15;
+	padding-bottom: 4px;
 	background: linear-gradient(90deg, ${colors.brand1}, ${colors.brand2});
 	-webkit-background-clip: text;
 	background-clip: text;
@@ -481,6 +538,7 @@ function App() {
 		const [loadingSessions, setLoadingSessions] = useState(false);
 		const [stats, setStats] = useState({ users: 0, thanks: 0, badges: 0 });
 		const [menuOpen, setMenuOpen] = useState(false);
+		const [modal, setModal] = useState({ open: false, type: null, title: '', fields: {}, target: null, message: '' });
 
 		const addToast = (text, tone = 'info') => {
 			const id = Math.random().toString(36).slice(2);
@@ -515,6 +573,7 @@ function App() {
 
 		const loadDemoData = async () => {
 			try {
+				setModal({ open: true, type: 'loading', title: 'Loading demo data…', fields: {}, target: null, message: 'Seeding users…' });
 				// Create users and set profiles
 				const created = [];
 				for (const d of demoUsers) {
@@ -523,20 +582,22 @@ function App() {
 					created.push(u);
 					await fetch(`${API}/profile`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: u.id, skillsOffered: d.teach, skillsWanted: d.learn }) });
 				}
+				setModal(m => ({ ...m, message: 'Adding badges…' }));
 				// Add some badges
 				await fetch(`${API}/badge`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'alex', badge: 'Super Teacher' }) });
 				await fetch(`${API}/badge`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'alex', badge: 'Helper' }) });
 				await fetch(`${API}/badge`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'taylor', badge: 'Fast Learner' }) });
+				setModal(m => ({ ...m, message: 'Posting thanks…' }));
 				// Wall of Thanks examples
 				await fetch(`${API}/thanks`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from: 'demo', to: 'alex', message: 'Thanks for the awesome guitar session!' }) });
 				await fetch(`${API}/thanks`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from: 'taylor', to: 'demo', message: 'Loved the coding tips!' }) });
 				// Refresh lists
 				fetchThanks();
 				fetchLeaderboard();
-				alert('Demo data loaded. Try usernames: demo, alex, taylor, sam, jordan');
+				setModal({ open: true, type: 'done', title: 'Demo data loaded', fields: {}, target: null, message: 'Try usernames: demo, alex, taylor, sam, jordan' });
 			} catch (e) {
 				console.error(e);
-				alert('Failed to load demo data');
+				setModal({ open: true, type: 'done', title: 'Failed to load demo data', fields: {}, target: null, message: 'Please retry.' });
 			}
 		};
 
@@ -624,22 +685,8 @@ function App() {
 			}
 		};
 
-		const proposeSession = async (toUser) => {
-			const skill = prompt(`What skill for a session with ${toUser.username}?`);
-			if (!skill) return;
-			const time = prompt('When? (e.g., 2025-09-08 18:00)');
-			try {
-				const res = await fetch(`${API}/session`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ fromId: user.id, toId: toUser.id, skill, time })
-				});
-				if (!res.ok) throw new Error('Could not create session');
-				addToast('Session proposed', 'success');
-				fetchSessions();
-			} catch (e) {
-				addToast(e.message || 'Failed to propose session', 'error');
-			}
+		const openSessionModal = (toUser) => {
+			setModal({ open: true, type: 'session', title: `Propose session with ${toUser.username}`, fields: { skill: '', time: '' }, target: toUser, message: '' });
 		};
 
 		const acceptSession = async (sessionId) => {
@@ -696,21 +743,29 @@ function App() {
 	};
 
 	// Wall of Thanks submit
-	const sendThanks = async (to) => {
-		const message = prompt('Say thanks!');
-		if (!message) return;
-			try {
-				const res = await fetch(`${API}/thanks`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ from: user.username, to, message })
-				});
+	const openThanksModal = (to) => {
+		setModal({ open: true, type: 'thanks', title: `Send thanks to ${to}`, fields: { message: '' }, target: to, message: '' });
+	};
+
+	const confirmModal = async () => {
+		if (!modal.open) return;
+		try {
+			if (modal.type === 'thanks') {
+				const res = await fetch(`${API}/thanks`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from: user.username, to: modal.target, message: modal.fields.message }) });
 				if (!res.ok) throw new Error('Could not post thanks');
 				addToast('Shared your thanks!', 'success');
 				fetchThanks();
-			} catch (e) {
-				addToast(e.message || 'Failed to send thanks', 'error');
 			}
+			if (modal.type === 'session') {
+				const res = await fetch(`${API}/session`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fromId: user.id, toId: modal.target.id, skill: modal.fields.skill, time: modal.fields.time }) });
+				if (!res.ok) throw new Error('Could not create session');
+				addToast('Session proposed', 'success');
+				fetchSessions();
+			}
+			setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' });
+		} catch (e) {
+			addToast(e.message || 'Action failed', 'error');
+		}
 	};
 
 	// Award badge
@@ -798,6 +853,50 @@ function App() {
 						</ToastItem>
 					))}
 				</ToastWrap>
+
+				{/* Modal */}
+				{modal.open && (
+					<Overlay role="dialog" aria-modal="true" aria-label={modal.title} onClick={(e) => { if (e.target === e.currentTarget) setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' }); }}>
+						<Dialog onClick={(e) => e.stopPropagation()}>
+							<DialogTitle>{modal.title}</DialogTitle>
+							{modal.type === 'thanks' && (
+								<div>
+									<Label htmlFor="thanksMsg">Message</Label>
+									<TextArea id="thanksMsg" value={modal.fields.message} onChange={(e) => setModal(m => ({ ...m, fields: { ...m.fields, message: e.target.value } }))} />
+									<DialogActions>
+										<GhostButton onClick={() => setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' })}>Cancel</GhostButton>
+										<Button onClick={confirmModal}>Send</Button>
+									</DialogActions>
+								</div>
+							)}
+							{modal.type === 'session' && (
+								<div>
+									<Label htmlFor="skill">Skill</Label>
+									<Input id="skill" value={modal.fields.skill} onChange={(e) => setModal(m => ({ ...m, fields: { ...m.fields, skill: e.target.value } }))} />
+									<Label htmlFor="time" style={{ marginTop: space(1) }}>Time</Label>
+									<Input id="time" placeholder="e.g., 2025-09-08 18:00" value={modal.fields.time} onChange={(e) => setModal(m => ({ ...m, fields: { ...m.fields, time: e.target.value } }))} />
+									<DialogActions>
+										<GhostButton onClick={() => setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' })}>Cancel</GhostButton>
+										<Button onClick={confirmModal}>Propose</Button>
+									</DialogActions>
+								</div>
+							)}
+							{modal.type === 'loading' && (
+								<div style={{ display: 'flex', alignItems: 'center', gap: space(1) }}>
+									<Spinner /> <span>{modal.message || 'Please wait…'}</span>
+								</div>
+							)}
+							{modal.type === 'done' && (
+								<div>
+									<p style={{ marginTop: 0 }}>{modal.message}</p>
+									<DialogActions>
+										<Button onClick={() => setModal({ open: false, type: null, title: '', fields: {}, target: null, message: '' })}>Close</Button>
+									</DialogActions>
+								</div>
+							)}
+						</Dialog>
+					</Overlay>
+				)}
 			</>
 		);
 	}
@@ -881,8 +980,8 @@ function App() {
 												</div>
 											</div>
 											<ActionRow>
-												<Button aria-label={`Say thanks to ${m.username}`} onClick={() => sendThanks(m.username)}>Thanks</Button>
-												<GhostButton aria-label={`Propose session with ${m.username}`} onClick={() => proposeSession(m)}>Propose</GhostButton>
+												<Button aria-label={`Say thanks to ${m.username}`} onClick={() => openThanksModal(m.username)}>Thanks</Button>
+												<GhostButton aria-label={`Propose session with ${m.username}`} onClick={() => openSessionModal(m)}>Propose</GhostButton>
 											</ActionRow>
 										</ListItem>
 									);
