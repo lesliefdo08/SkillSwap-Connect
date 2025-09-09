@@ -30,6 +30,9 @@ const bp = {
 	lg: '1024px'
 };
 
+// Utilities
+const toArray = (v) => (Array.isArray(v) ? v : []);
+
 const GlobalStyle = createGlobalStyle`
 	:root {
 		--radius: 16px;
@@ -651,7 +654,8 @@ function App() {
 	// Fetch matches
 	const fetchMatches = async () => {
 		const res = await fetch(`${API}/matches/${user.id}`);
-		setMatches(await res.json());
+		const data = await res.json();
+		setMatches(toArray(data));
 	};
 
 	// Suggest skill
@@ -673,7 +677,8 @@ function App() {
 				setLoadingThanks(true);
 				const res = await fetch(`${API}/thanks`);
 				if (!res.ok) throw new Error('Failed to load thanks');
-				setThanksWall(await res.json());
+				const data = await res.json();
+				setThanksWall(toArray(data));
 			} catch (e) {
 				addToast('Could not load Wall of Thanks', 'error');
 			} finally {
@@ -688,7 +693,8 @@ function App() {
 				setLoadingSessions(true);
 				const res = await fetch(`${API}/sessions/${user.id}`);
 				if (!res.ok) throw new Error('Failed to load sessions');
-				setSessions(await res.json());
+				const data = await res.json();
+				setSessions(toArray(data));
 			} catch (e) {
 				addToast('Could not load sessions', 'error');
 			} finally {
@@ -723,8 +729,9 @@ function App() {
 				const res = await fetch(`${API}/leaderboard`);
 				if (!res.ok) throw new Error('Failed to load leaderboard');
 				const data = await res.json();
-				setLeaderboard(data);
-				setStats(s => ({ ...s, badges: data.reduce((sum, r) => sum + (r.badges || 0), 0) }));
+				const safe = toArray(data);
+				setLeaderboard(safe);
+				setStats(s => ({ ...s, badges: safe.reduce((sum, r) => sum + (r.badges || 0), 0) }));
 			} catch (e) {
 				addToast('Could not load leaderboard', 'error');
 			} finally {
@@ -962,13 +969,13 @@ function App() {
 						<div style={{ marginBottom: space(1) }}>
 							<b>Skills you can teach:</b>
 							<div style={{ marginTop: space(1) }}>
-								{skillsOffered.length ? skillsOffered.map(skill => <SkillTag key={skill}>{skill}</SkillTag>) : <span style={{ color: colors.muted }}>None yet</span>}
+								{toArray(skillsOffered).length ? toArray(skillsOffered).map(skill => <SkillTag key={skill}>{skill}</SkillTag>) : <span style={{ color: colors.muted }}>None yet</span>}
 							</div>
 						</div>
 						<div style={{ marginBottom: space(2) }}>
 							<b>Skills you want to learn:</b>
 							<div style={{ marginTop: space(1) }}>
-								{skillsWanted.length ? skillsWanted.map(skill => <SkillTag key={skill}>{skill}</SkillTag>) : <span style={{ color: colors.muted }}>None yet</span>}
+								{toArray(skillsWanted).length ? toArray(skillsWanted).map(skill => <SkillTag key={skill}>{skill}</SkillTag>) : <span style={{ color: colors.muted }}>None yet</span>}
 							</div>
 						</div>
 						<Row>
@@ -987,7 +994,7 @@ function App() {
 							<p style={{ color: colors.muted, marginTop: 0 }}>No matches yet. Add more skills and save your profile.</p>
 						) : (
 							<List>
-								{matches.map(m => {
+								{toArray(matches).map(m => {
 									const initials = m.username.slice(0,2).toUpperCase();
 									const hue = (m.username.charCodeAt(0) * 37) % 360;
 									const bg = `hsl(${hue} 70% 50%)`;
@@ -997,8 +1004,8 @@ function App() {
 												<Avatar $bg={bg} aria-hidden>{initials}</Avatar>
 												<div>
 													<div style={{ fontWeight: 600 }}>{m.username}</div>
-													<div style={{ color: colors.muted, fontSize: '0.9rem' }}>Teaches: {m.skillsOffered.join(', ')}</div>
-													<div style={{ color: colors.muted, fontSize: '0.9rem' }}>Wants: {m.skillsWanted.join(', ')}</div>
+													<div style={{ color: colors.muted, fontSize: '0.9rem' }}>Teaches: {toArray(m.skillsOffered).join(', ')}</div>
+													<div style={{ color: colors.muted, fontSize: '0.9rem' }}>Wants: {toArray(m.skillsWanted).join(', ')}</div>
 												</div>
 											</div>
 											<ActionRow>
@@ -1027,7 +1034,7 @@ function App() {
 							<p style={{ color: colors.muted, marginTop: 0 }}>No sessions yet. Propose one from the Matches section.</p>
 						) : (
 							<List>
-								{sessions.map(s => (
+								{toArray(sessions).map(s => (
 									<ListItem key={s.id}>
 										<div style={{ flex: 1 }}>
 											<div style={{ fontWeight: 600 }}>{s.fromName} → {s.toName}</div>
@@ -1060,7 +1067,7 @@ function App() {
 								<p style={{ color: colors.muted, marginTop: 0 }}>No shoutouts yet. Spread some kindness!</p>
 							) : (
 								<List>
-									{thanksWall.map(t => (
+									{toArray(thanksWall).map(t => (
 										<ListItem key={t.id}>
 											<div style={{ display: 'flex', alignItems: 'center', gap: space(1), flex: 1 }}>
 												<Avatar $bg={'#94A3B8'} aria-hidden>{t.from.slice(0,2).toUpperCase()}</Avatar>
@@ -1090,9 +1097,9 @@ function App() {
 							</List>
 						) : leaderboard.length === 0 ? (
 							<p style={{ color: colors.muted, marginTop: 0 }}>No badges yet.</p>
-						) : (
-														<ol style={{ margin: 0, paddingLeft: space(3) }}>
-																{leaderboard.map(l => {
+			) : (
+							<ol style={{ margin: 0, paddingLeft: space(3) }}>
+								{toArray(leaderboard).map(l => {
 																	const suggestions = ['Team Player','Problem Solver','Great Mentor'];
 																	return (
 																		<li key={l.username} style={{ marginBottom: space(1.5) }}>
@@ -1105,7 +1112,7 @@ function App() {
 																															{l.badgesList.map((bname, i) => (
 																																<div key={i} style={{ position: 'relative', marginRight: space(1), marginBottom: space(1) }}>
 																																	<BadgeChip>{bname}</BadgeChip>
-																																	{l.username !== user.username && (
+																																	{user && l.username !== user.username && (
 																																		<ChipClose aria-label={`Remove ${bname}`} title="Remove badge" onClick={async () => {
 																																			try {
 																																				await fetch(`${API}/badge`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: l.username, badge: bname }) });
@@ -1118,14 +1125,14 @@ function App() {
 																															))}
 																				</div>
 																			)}
-																													{l.username !== user.username && (
+																													{user && l.username !== user.username && (
 																				<ActionRow style={{ marginTop: space(1) }}>
 																					<InputSmall aria-label={`Badge for ${l.username}`} placeholder="Badge name" value={badge} onChange={e => setBadge(e.target.value)} />
 																					<Button aria-label={`Award badge to ${l.username}`} onClick={() => awardBadge(l.username)}>Award</Button>
 																															{(() => {
 																																const skillBased = [
-																																	...(l.skillsOffered || []).map(s => `${s} Mentor`),
-																																	...(l.skillsWanted || []).map(s => `Learning ${s}`)
+																																	...toArray(l.skillsOffered).map(s => `${s} Mentor`),
+																																	...toArray(l.skillsWanted).map(s => `Learning ${s}`)
 																																];
 																																const unique = Array.from(new Set([...suggestions, ...skillBased])).slice(0, 3);
 																																return unique;

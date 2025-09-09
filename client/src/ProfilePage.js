@@ -63,6 +63,7 @@ export default function ProfilePage({ apiBase, currentUser, username, dark, goHo
   const [thanksGiven, setThanksGiven] = useState([]);
   const [thanksReceived, setThanksReceived] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const toArray = (v) => (Array.isArray(v) ? v : []);
 
   useEffect(() => {
     async function load() {
@@ -71,16 +72,16 @@ export default function ProfilePage({ apiBase, currentUser, username, dark, goHo
           fetch(`${apiBase}/leaderboard`),
           fetch(`${apiBase}/thanks`),
         ]);
-        const lb = await lbRes.json();
-        const thx = await thxRes.json();
-        const row = lb.find(r => r.username === me);
-        setBadges(row?.badgesList || []);
-        setThanksGiven(thx.filter(t => t.from === me));
-        setThanksReceived(thx.filter(t => t.to === me));
+  const lb = await lbRes.json();
+  const thx = await thxRes.json();
+  const row = toArray(lb).find(r => r.username === me);
+  setBadges(toArray(row?.badgesList));
+  setThanksGiven(toArray(thx).filter(t => t.from === me));
+  setThanksReceived(toArray(thx).filter(t => t.to === me));
         if (currentUser?.id) {
           const sRes = await fetch(`${apiBase}/sessions/${currentUser.id}`);
           const ss = await sRes.json();
-          setSessions(ss);
+          setSessions(toArray(ss));
         }
       } catch (e) {
         // eslint-disable-next-line no-console
